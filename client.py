@@ -1,5 +1,5 @@
 from socket import *
-import msvcrt
+import select
 import sys
 import struct
 from scapy.all import get_if_addr
@@ -39,15 +39,19 @@ client.bind(('', 13117))
 print (bcolors.WARNING + 'Client started , listening for offer requests...' + bcolors.ENDC)
 
 while 1:
-    message, (serverAddress,port) = client.recvfrom(2048)
-    TCP_PORT = struct.unpack('I B H', message)[2]
-    print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
-
-    #connect to the TCP mode
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    clientSocket.connect((serverAddress,TCP_PORT))
-    teamName = 'EOE'
-    clientSocket.send(teamName.encode())
+    rightServer = False
+    while rightServer == False:
+        message, (serverAddress,port) = client.recvfrom(2048)
+        TCP_PORT = struct.unpack('I B H', message)[2]
+        print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
+        print(serverAddress, TCP_PORT)
+        #connect to the TCP mode
+        if serverAddress == '172.1.0.91':
+            clientSocket = socket(AF_INET, SOCK_STREAM)
+            clientSocket.connect((serverAddress,TCP_PORT))
+            teamName = 'EOE'
+            clientSocket.send(teamName.encode())
+            rightServer=True
 
     #Game mode
     welcomeMessage = clientSocket.recv(2048)
@@ -55,8 +59,8 @@ while 1:
     startTime = time.time()
     while 1: 
         try:
-            if msvcrt.kbhit():
-                c= msvcrt.getch()
+            if select.select([sys.stdin],[],[],0) == ([sys.stdin],[],[]):
+                c= sys.stdin.read(1)
                 c=str(c)+'\0'
                 print (bcolors.HEADER + c[1:] + bcolors.ENDC)
                 clientSocket.send(c.encode())
