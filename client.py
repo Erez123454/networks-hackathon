@@ -75,12 +75,11 @@ while 1:
             #if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
             c = getch.getch()
             print(str(c))
-            clientSocket.send(str(c).encode())
+            clientSocket.sendall(str(c).encode())
             if time.time() - startTime > 10:
                 print(bcolors.WARNING + 'Server disconnected, listening for offer requests...' + bcolors.ENDC)
                 break
         except Exception as e:
-            print (e)
             print(bcolors.WARNING + 'Server disconnected, listening for offer requests...' + bcolors.ENDC)
             break
 
