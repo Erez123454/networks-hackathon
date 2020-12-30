@@ -6,6 +6,7 @@ import struct
 import random
 import copy
 import ipaddress
+from scapy.all import get_if_addr
 
 
 chars = []
@@ -58,7 +59,7 @@ def printStatistics(maxTapsfun):
 def thread_udp(inputNetwork):
     try:
         if inputNetwork == '1':
-            network = '172.18.0.0/16'
+            network = '172.1.0.0/16'
         elif inputNetwork == '2':
             network = '172.99.0.0/16'
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -66,10 +67,10 @@ def thread_udp(inputNetwork):
         server.settimeout(0.2)
         message = struct.pack('I B H', 0xfeedbeef, 0x2, TCP_PORT)
         i=0
-        print (bcolors.WARNING + 'Server started listening on ip address 172.18.0.91' + bcolors.ENDC)
+        print (bcolors.WARNING + 'Server started listening on ip address 172.1.0.91' + bcolors.ENDC)
         ip = str(ipaddress.ip_network(network,False).broadcast_address)
         while 1:
-            server.sendto(message, (ip, 13117)) ################## change to variable 'network
+            server.sendto(message, (ip, 13117))
             i+=1
             if(i==10):
                 break
@@ -155,8 +156,12 @@ def listenToClient(connection, groupNumber,welcomeMessage):
         while time.time() < curr+10: 
             try:
                 charTyped = connection.recv(2048)
-                charTypedDecode = charTyped.decode()
-                chars[ord(charTypedDecode)]+=1
+                try:
+                    charTypedDecode = charTyped.decode()
+                    chars[ord(charTypedDecode)]+=1
+                except Exeption as e:
+                    print (e)
+                    break
                 if groupNumber == 1:
                     next(counterG1)
                 else:
@@ -177,8 +182,8 @@ inputCorrect = False
 inputNetwork = ''
 while inputCorrect == False:
     print(bcolors.UNDERLINE + bcolors.HEADER + bcolors.BOLD + 'please choose your virtual network:' + bcolors.ENDC)
-    print(bcolors.HEADER + 'press 1 for dev network (eth1 - 172.1.0/24)' + bcolors.ENDC)
-    print(bcolors.HEADER + 'press 2 for dev network (eth2 - 172.99.0/24)' + bcolors.ENDC)
+    print(bcolors.HEADER + 'press 1 for dev network (eth1 - 172.1.0.0/24)' + bcolors.ENDC)
+    print(bcolors.HEADER + 'press 2 for dev network (eth2 - 172.99.0.0/24)' + bcolors.ENDC)
     inputNetwork = input()
     if (inputNetwork == '1') | (inputNetwork == '2'):
         inputCorrect = True
@@ -200,6 +205,3 @@ while 1:
         maxTappsPerGroup = printStatistics(maxTappsPerGroup)
     except:
         pass
-
-    
-
