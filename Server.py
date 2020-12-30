@@ -14,8 +14,8 @@ chars = [0 for i in range(128)]
 random.seed(1)
 TCP_PORT = 0
 
-
-class bcolors:
+#all the colors in the code
+class bcolors:  
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -26,26 +26,29 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-def getMostCommonChar():
+ #statistics
+def getMostCommonChar():   
     try:
         maxChar = max(chars)
         result = []
         for i in range(len(chars)):
             if chars[i] == maxChar:
-                result.append(chr(i))
+                #for each result check if max
+                result.append(chr(i))   
         return [result,maxChar]
     except:
         return [0,'d']
 
 def printStatistics(maxTapsfun):
     try:
+        #get the max value from the last game
         val1=max(next(copy.copy(counterG1)),0)
         val2=max(next(copy.copy(counterG2)),0)
         maxVal =  max(val1,val2)
         print(bcolors.OKGREEN + bcolors.BOLD + bcolors.UNDERLINE + "Statistic:" + bcolors.ENDC)
         if (maxTapsfun < maxVal):
-            maxTapsfun = maxVal
+            #get the max char
+            maxTapsfun = maxVal 
         if(maxTapsfun > 0 ):
             [commonCharacter , numberOfChars] = getMostCommonChar()
             print(bcolors.OKGREEN + 'The most common pressed chars are :',commonCharacter,'-', numberOfChars, ' times!' + bcolors.ENDC)
@@ -55,7 +58,7 @@ def printStatistics(maxTapsfun):
     return maxTapsfun
 
 
-
+#thread that responsible for the udp connection and broadcasting
 def thread_udp(inputNetwork):
     try:
         if inputNetwork == '1':
@@ -66,33 +69,43 @@ def thread_udp(inputNetwork):
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server.settimeout(0.2)
         message = struct.pack('I B H', 0xfeedbeef, 0x2, TCP_PORT)
-        i=0
-        print (bcolors.WARNING + 'Server started listening on ip address 172.1.0.91' + bcolors.ENDC)
-        ip = str(ipaddress.ip_network(network,False).broadcast_address)
+        i=0    
+        #check if in regular state or test state
+        if inputNetwork == '1':
+            print (bcolors.WARNING + 'Server started listening on ip address 172.1.0.91' + bcolors.ENDC)
+        elif inputNetwork == '2':
+            print (bcolors.WARNING + 'Server started listening on ip address 172.99.0.91' + bcolors.ENDC)
+            #get the relevant ip for the current state
+        ip = str(ipaddress.ip_network(network,False).broadcast_address) 
         while 1:
-            server.sendto(message, (ip, 13117))
+            #broadcasting for all the clients
+            server.sendto(message, (ip, 13117))    
             i+=1
-            if(i==10):
-                break
+            #after 10 seconds stop
+            if(i==10):  
+                break   
             time.sleep(1)
     except:
         pass
     server.close()
 
+#thread that responsible for the tcp connection and the client sockets
 def thread_tcp():
     serverSocket.settimeout(10)
     connections=[]
     teams=[]
     while 1:
         try:
-            connectionSocket, addr = serverSocket.accept()
-            teamName = connectionSocket.recv(2048)
+            #get new socket for new client
+            connectionSocket, addr = serverSocket.accept() 
+            #save the team name
+            teamName = connectionSocket.recv(2048)  
             print(teamName.decode())
             teams.append(teamName.decode())
-            connections.append(connectionSocket)
-
+            connections.append(connectionSocket)    
         except :
-            startGame(teams,connections)
+            #after 10 seconds start the game
+            startGame(teams,connections)    
             break
     print (bcolors.WARNING + '\nGame over, sending out offer requests...' + bcolors.ENDC)  
 
@@ -101,11 +114,13 @@ def startGame(teams, connections):
         try:
             group1 = []
             group2 = []
-            for i in range(len(teams)) :
+            #divide the clients to 2 groups
+            for i in range(len(teams)) :    
                 if i % 2 == 0:
                     group1.append(teams[i])
                 else:
                     group2.append(teams[i])
+                    #prepare the welcome messege
             welcomeMessage='Welcome to Keyboard Spamming Battle Royale.\nGroup 1: \n==\n'
             for g in group1:
                 welcomeMessage+=str(g) + '\n'
@@ -119,20 +134,23 @@ def startGame(teams, connections):
             threads=[]
             for i in range(len(connections)):
                 thread= threading.Thread(target=listenToClient,args=(i,connections[i],welcomeMessage))
-                threads.append(thread)
+                #each client open new thread
+                threads.append(thread) 
                 thread.start()
-            
                 
             for thread in threads:
-                thread.join()
+                #main thread waits for all clients
+                thread.join()       
         except:
             pass
 
+        #prepare game over messege
         val1=max(next(copy.copy(counterG1)),0)
         val2=max(next(copy.copy(counterG2)),0)
 
         print (bcolors.WARNING + bcolors.BOLD + '\nGame over!' + bcolors.ENDC)
         print (bcolors.FAIL + 'Group 1 typed in ',val1, ' characters. Group 2 typed in ',val2, 'characters.' + bcolors.ENDC)
+        #get the winner
         if (val1 >val2):
             print (bcolors.OKGREEN + bcolors.BOLD + bcolors.UNDERLINE + 'Group 1 wins!' + bcolors.ENDC)
             print()
@@ -150,9 +168,9 @@ def startGame(teams, connections):
     except:
         pass
 
+#each thread initilized with the function that listen to the client
 def listenToClient(groupNumber,connection,welcomeMessage):
     try:
-        teamCounter = 0
         connection.settimeout(10)
         connection.send(welcomeMessage.encode())
         curr= time.time()
@@ -162,23 +180,22 @@ def listenToClient(groupNumber,connection,welcomeMessage):
                 try:
                     charTypedDecode = charTyped.decode()
                     chars[ord(charTypedDecode)]+=1
-                except e:
+                except:
                     if groupNumber == 1:
                         next(counterG1)
                     else:
                         next(counterG2)
-                    print(e)
                 if groupNumber == 1:
                     next(counterG1)
                 else:
                     next(counterG2)
-            except e:
-                print(e)
+            except :
                 break
     except:
         pass
     connection.close()
 
+#setting for the server socket
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind(('', 0))
 serverSocket.listen(1)
@@ -187,6 +204,7 @@ TCP_PORT = serverSocket.getsockname()[1]
 inputCorrect = False
 inputNetwork = ''
 while inputCorrect == False:
+    #get the relevant state (network)
     print(bcolors.UNDERLINE + bcolors.HEADER + bcolors.BOLD + 'please choose your virtual network:' + bcolors.ENDC)
     print(bcolors.HEADER + 'press 1 for dev network (eth1 - 172.1.0.0/24)' + bcolors.ENDC)
     print(bcolors.HEADER + 'press 2 for dev network (eth2 - 172.99.0.0/24)' + bcolors.ENDC)
@@ -198,16 +216,18 @@ while inputCorrect == False:
 
 maxTappsPerGroup = 0
 
+#main loop
 while 1: 
     try:              
         counterG1 =itertools.count()
         counterG2 = itertools.count()
         tcp = threading.Thread(target=thread_tcp)
-        udp = threading.Thread(target=thread_udp, args=(inputNetwork)) ################### check input network
+        udp = threading.Thread(target=thread_udp, args=(inputNetwork)) 
         tcp.start()
         udp.start()
         tcp.join()
         udp.join()
+        #update the max tap and print statistics
         maxTappsPerGroup = printStatistics(maxTappsPerGroup)
     except:
         pass

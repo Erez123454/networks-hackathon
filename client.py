@@ -8,12 +8,14 @@ import sys, tty, termios, fcntl
 import getch
 import ipaddress
 
-TCP_PORT = 0
+#global tcp port variable
+TCP_PORT = 0 
 
+#all the colors in the code
 class bcolors:
     HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
+    OKBLUE = '\033[94m'  
+    OKCYAN = '\033[96m' 
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
@@ -31,51 +33,55 @@ while inputCorrect == False:
     if (inputNetwork == '1') | (inputNetwork == '2'):
         inputCorrect = True
     else:
-        print(bcolors.FAIL + 'ERROR : you can only press 1 or 2, please try again' + bcolors.ENDC)       
+        print(bcolors.FAIL + 'ERROR : you can only press 1 or 2, please try again' + bcolors.ENDC) 
+
+#choose the right network      
 if inputNetwork == '1':
     network = get_if_addr('eth1')+'/16'
 elif inputNetwork == '2':
     network = get_if_addr('eth2')+'/16'       
+
+
+#open the client UDP socket
 client = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) 
 client.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 client.setsockopt(SOL_SOCKET, SO_REUSEADDR , 1)
 ip = str(ipaddress.ip_network(network,False).broadcast_address)
-print(get_if_addr('eth1'))
 print(ip)
-print(get_if_addr(''))
-client.bind((get_if_addr(''), 13117))
+client.bind((ip, 13117))
 print(bcolors.WARNING +"Client started, listening for offer requests..." + bcolors.ENDC)
 
+#main loop
 while 1:
-    rightServer = False
-    while rightServer == False:
-        try:
-            message, (serverAddress,port) = client.recvfrom(2048)
-            TCP_PORT = struct.unpack('I B H', message)[2]
-            print(serverAddress, TCP_PORT)
-            print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
-            if serverAddress == '172.1.0.91':
-                clientSocket = socket(AF_INET, SOCK_STREAM)
-                clientSocket.connect((serverAddress,TCP_PORT))
-                teamName = 'EOE'
-                clientSocket.send(teamName.encode())
-                welcomeMessage = clientSocket.recv(2048)
-                print(bcolors.OKCYAN + welcomeMessage.decode() + bcolors.ENDC)
-                rightServer = True
-            else:
-                pass
-        except:
-            pass
+    try:
+        #waiting for server pucket message
+        message, (serverAddress,port) = client.recvfrom(2048)
 
-    #Game mode
-   
+        #the tcp port is in the sacond place in the pucket
+        TCP_PORT = struct.unpack('I B H', message)[2]
+        print(serverAddress, TCP_PORT)
+        print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
+        clientSocket = socket(AF_INET, SOCK_STREAM)
+        clientSocket.connect((serverAddress,TCP_PORT))
+        teamName = 'EOE'
+        
+        #sending the team name
+        clientSocket.send(teamName.encode())
+        welcomeMessage = clientSocket.recv(2048)
+        print(bcolors.OKCYAN + welcomeMessage.decode() + bcolors.ENDC)
+    except:
+        pass
+
+    #Game mode!!!
+    #getting chars from client loop
     startTime = time.time()
     while 1: 
         try:
-            #if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
             c = getch.getch()
             print(str(c))
             clientSocket.sendall(str(c).encode())
+
+            #check if 10 sec pass
             if time.time() - startTime > 10:
                 print(bcolors.WARNING + 'Server disconnected, listening for offer requests...' + bcolors.ENDC)
                 break
