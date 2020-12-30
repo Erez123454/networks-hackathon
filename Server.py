@@ -46,9 +46,9 @@ def printStatistics(maxTapsfun):
         print(bcolors.OKGREEN + bcolors.BOLD + bcolors.UNDERLINE + "Statistic:" + bcolors.ENDC)
         if (maxTapsfun < maxVal):
             maxTapsfun = maxVal
-            if(maxTapsfun > 0 ):
-                [commonCharacter , numberOfChars] = getMostCommonChar()
-                print(bcolors.OKGREEN + 'The most common pressed chars are :',commonCharacter,'-', numberOfChars, ' times!' + bcolors.ENDC)
+        if(maxTapsfun > 0 ):
+            [commonCharacter , numberOfChars] = getMostCommonChar()
+            print(bcolors.OKGREEN + 'The most common pressed chars are :',commonCharacter,'-', numberOfChars, ' times!' + bcolors.ENDC)
         print(bcolors.OKGREEN + 'Best group ever tapped: ' + str(maxTapsfun) + ' taps! can you beat them?\n' + bcolors.ENDC)
     except:
         pass
@@ -97,33 +97,35 @@ def thread_tcp():
 
 def startGame(teams, connections):
     try:
-        group1 = []
-        group2 = []
-        groupNumbers=[]
-        for team in teams :
-            if random.random() > 0.5:
-                group1.append(team)
-                groupNumbers.append(1)
-            else:
-                group2.append(team)
-                groupNumbers.append(2)
-        welcomeMessage='Welcome to Keyboard Spamming Battle Royale.\nGroup 1: \n==\n'
-        for g in group1:
-            welcomeMessage+=str(g) + '\n'
-        welcomeMessage+='\nGroup 2: \n==\n'
-        for g in group2:
-            welcomeMessage+=str(g) + '\n'
-        welcomeMessage+='\nStart pressing keys on your keyboard as fast as you can!!\n'
-        
-        threads=[]
-        for i in range(len(connections)):
-            thread= threading.Thread(target=listenToClient,args=(connections[i],groupNumbers[i],welcomeMessage))
-            threads.append(thread)
-            thread.start()
-        
+        try:
+            group1 = []
+            group2 = []
+            for i in range(len(teams)) :
+                if i % 2 == 0:
+                    group1.append(teams[i])
+                else:
+                    group2.append(teams[i])
+            welcomeMessage='Welcome to Keyboard Spamming Battle Royale.\nGroup 1: \n==\n'
+            for g in group1:
+                welcomeMessage+=str(g) + '\n'
+            welcomeMessage+='\nGroup 2: \n==\n'
+            for g in group2:
+                welcomeMessage+=str(g) + '\n'
+            welcomeMessage+='\nStart pressing keys on your keyboard as fast as you can!!\n'
+        except:
+            pass
+        try:
+            threads=[]
+            for i in range(len(connections)):
+                thread= threading.Thread(target=listenToClient,args=(i,connections[i],welcomeMessage))
+                threads.append(thread)
+                thread.start()
             
-        for thread in threads:
-            thread.join()
+                
+            for thread in threads:
+                thread.join()
+        except:
+            pass
 
         val1=max(next(copy.copy(counterG1)),0)
         val2=max(next(copy.copy(counterG2)),0)
@@ -147,7 +149,7 @@ def startGame(teams, connections):
     except:
         pass
 
-def listenToClient(connection, groupNumber,welcomeMessage):
+def listenToClient(groupNumber,connection,welcomeMessage):
     try:
         teamCounter = 0
         connection.settimeout(10)
@@ -159,15 +161,18 @@ def listenToClient(connection, groupNumber,welcomeMessage):
                 try:
                     charTypedDecode = charTyped.decode()
                     chars[ord(charTypedDecode)]+=1
-                except Exeption as e:
-                    print (e)
-                    break
+                except e:
+                    if groupNumber == 1:
+                        next(counterG1)
+                    else:
+                        next(counterG2)
+                    print(e)
                 if groupNumber == 1:
                     next(counterG1)
                 else:
                     next(counterG2)
-            except:
-                print('got execpt')
+            except e:
+                print(e)
                 break
     except:
         pass

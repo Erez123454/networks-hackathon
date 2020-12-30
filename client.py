@@ -31,7 +31,7 @@ while inputCorrect == False:
     if (inputNetwork == '1') | (inputNetwork == '2'):
         inputCorrect = True
     else:
-        print(bcolors.FAIL + 'ERROR : you can only press 1 or 2, please try again' + bcolors.ENDC)
+        print(bcolors.FAIL + 'ERROR : you can only press 1 or 2, please try again' + bcolors.ENDC)       
 if inputNetwork == '1':
     network = get_if_addr('eth1')+'/16'
 elif inputNetwork == '2':
@@ -40,21 +40,32 @@ client = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
 client.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 client.setsockopt(SOL_SOCKET, SO_REUSEADDR , 1)
 ip = str(ipaddress.ip_network(network,False).broadcast_address)
-client.bind((ip, 13117))
+print(get_if_addr('eth1'))
+print(ip)
+print(get_if_addr(''))
+client.bind((get_if_addr(''), 13117))
+print(bcolors.WARNING +"Client started, listening for offer requests..." + bcolors.ENDC)
 
 while 1:
-    try:
-        message, (serverAddress,port) = client.recvfrom(2048)
-        TCP_PORT = struct.unpack('I B H', message)[2]
-        print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
-        clientSocket = socket(AF_INET, SOCK_STREAM)
-        clientSocket.connect((serverAddress,TCP_PORT))
-        teamName = 'EOE'
-        clientSocket.send(teamName.encode())
-        welcomeMessage = clientSocket.recv(2048)
-        print(bcolors.OKCYAN + welcomeMessage.decode() + bcolors.ENDC)
-    except:
-        pass
+    rightServer = False
+    while rightServer == False:
+        try:
+            message, (serverAddress,port) = client.recvfrom(2048)
+            TCP_PORT = struct.unpack('I B H', message)[2]
+            print(serverAddress, TCP_PORT)
+            print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
+            if serverAddress == '172.1.0.91':
+                clientSocket = socket(AF_INET, SOCK_STREAM)
+                clientSocket.connect((serverAddress,TCP_PORT))
+                teamName = 'EOE'
+                clientSocket.send(teamName.encode())
+                welcomeMessage = clientSocket.recv(2048)
+                print(bcolors.OKCYAN + welcomeMessage.decode() + bcolors.ENDC)
+                rightServer = True
+            else:
+                pass
+        except:
+            pass
 
     #Game mode
    
@@ -62,17 +73,14 @@ while 1:
     while 1: 
         try:
             #if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
-            #c= getChar()
-                #c=str(c)+'\0'
-                #print (bcolors.HEADER + c + bcolors.ENDC)   
             c = getch.getch()
             print(str(c))
             clientSocket.send(str(c).encode())
             if time.time() - startTime > 10:
                 print(bcolors.WARNING + 'Server disconnected, listening for offer requests...' + bcolors.ENDC)
                 break
-                
-        except:
+        except Exception as e:
+            print (e)
             print(bcolors.WARNING + 'Server disconnected, listening for offer requests...' + bcolors.ENDC)
             break
 
