@@ -4,6 +4,26 @@ import sys
 import struct
 from scapy.all import get_if_addr
 import time
+import sys, tty, termios, fcntl
+import getch
+
+def getChar():
+    fd = sys.stdin.fileno()
+
+    oldterm = termios.tcgetattr(fd)
+    newattr = termios.tcgetattr(fd)
+    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+    termios.tcsetattr(fd, termios.TCSANOW, newattr)
+
+    oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+
+    c = sys.stdin.read(1)
+
+    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
+    return c
+
 
 TCP_PORT = 0
 
@@ -40,18 +60,23 @@ print (bcolors.WARNING + 'Client started , listening for offer requests...' + bc
 
 while 1:
     rightServer = False
+    
     while rightServer == False:
-        message, (serverAddress,port) = client.recvfrom(2048)
-        TCP_PORT = struct.unpack('I B H', message)[2]
-        print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
-        print(serverAddress, TCP_PORT)
-        #connect to the TCP mode
-        if serverAddress == '172.18.0.91':
-            clientSocket = socket(AF_INET, SOCK_STREAM)
-            clientSocket.connect((serverAddress,TCP_PORT))
-            teamName = 'EOE'
-            clientSocket.send(teamName.encode())
-            rightServer=True
+        try:
+            message, (serverAddress,port) = client.recvfrom(2048)
+            TCP_PORT = struct.unpack('I B H', message)[2]
+            print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
+            print(serverAddress, TCP_PORT)
+            #connect to the TCP mode
+            if serverAddress == '172.18.0.91':
+                print(serverAddress, TCP_PORT)
+                clientSocket = socket(AF_INET, SOCK_STREAM)
+                clientSocket.connect((serverAddress,TCP_PORT))
+                teamName = 'EOE'
+                clientSocket.send(teamName.encode())
+                rightServer=True
+        except:
+            pass
 
     #Game mode
     welcomeMessage = clientSocket.recv(2048)
@@ -59,12 +84,14 @@ while 1:
     startTime = time.time()
     while 1: 
         try:
-            if select.select([sys.stdin],[],[],0) == ([sys.stdin],[],[]):
-                c= sys.stdin.read(1)
-                c=str(c)+'\0'
-                print (bcolors.HEADER + c[1:] + bcolors.ENDC)
-                clientSocket.send(c.encode())
-            elif time.time() - startTime > 10:
+            #if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+            #c= getChar()
+                #c=str(c)+'\0'
+                #print (bcolors.HEADER + c + bcolors.ENDC)   
+            c = getch.getch()
+            print(str(c))
+            clientSocket.send(str(c).encode())
+            if time.time() - startTime > 10:
                 print(bcolors.WARNING + 'Server disconnected, listening for offer requests...' + bcolors.ENDC)
                 break
                 
