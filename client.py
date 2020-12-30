@@ -46,7 +46,7 @@ while 1:
         print(bcolors.OKGREEN + 'Recieved offer from ',serverAddress, ', attempting to connect...' + bcolors.ENDC)
         print(serverAddress, TCP_PORT)
         #connect to the TCP mode
-        if serverAddress == '172.1.0.91':
+        if serverAddress == '172.18.0.91':
             clientSocket = socket(AF_INET, SOCK_STREAM)
             clientSocket.connect((serverAddress,TCP_PORT))
             teamName = 'EOE'

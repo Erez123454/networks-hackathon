@@ -35,14 +35,15 @@ def getMostCommonChar():
     return [result,maxChar]
 
 def printStatistics(maxTapsfun):
-    print(bcolors.OKGREEN + bcolors.BOLD + bcolors.UNDERLINE + "Statistic:" + bcolors.ENDC)
-    [commonCharacter , numberOfChars] = getMostCommonChar()
-    print(bcolors.OKGREEN + 'The most common pressed chars are :',commonCharacter,'-', numberOfChars, ' times!' + bcolors.ENDC)
-    val1=max(next(copy.copy(counterG1)),0)
-    val2=max(next(copy.copy(counterG2)),0)
-    maxVal =  max(val1,val2)
-    if maxTapsfun < maxVal:
-        maxTapsfun = maxVal
+    if maxTapsfun > 0:
+        print(bcolors.OKGREEN + bcolors.BOLD + bcolors.UNDERLINE + "Statistic:" + bcolors.ENDC)
+        [commonCharacter , numberOfChars] = getMostCommonChar()
+        print(bcolors.OKGREEN + 'The most common pressed chars are :',commonCharacter,'-', numberOfChars, ' times!' + bcolors.ENDC)
+        val1=max(next(copy.copy(counterG1)),0)
+        val2=max(next(copy.copy(counterG2)),0)
+        maxVal =  max(val1,val2)
+        if maxTapsfun < maxVal:
+            maxTapsfun = maxVal
     print(bcolors.OKGREEN + 'Best group ever tapped: ' + str(maxTapsfun) + ' taps! can you beat them?\n' + bcolors.ENDC)
     return maxTapsfun
 
@@ -50,9 +51,9 @@ def printStatistics(maxTapsfun):
 
 def thread_udp(inputNetwork):
     if inputNetwork == '1':
-        network = '172.1.0.0/24'
+        network = '172.18.0.0/16'
     elif inputNetwork == '2':
-        network = '172.99.0.0/24'
+        network = '172.99.0.0/16'
     
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -62,7 +63,7 @@ def thread_udp(inputNetwork):
     print (bcolors.WARNING + 'Server started listening on ip address 172.1.0.91' + bcolors.ENDC)
     ip = str(ipaddress.ip_network(network,False).broadcast_address)
     while 1:
-        server.sendto(message, ('<broadcast>', 13117)) ################## change to variable 'network
+        server.sendto(message, (ip, 13117)) ################## change to variable 'network
         i+=1
         if(i==10):
             break
