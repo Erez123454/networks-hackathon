@@ -5,6 +5,8 @@ import itertools
 import struct
 import random
 import copy
+import ipaddress
+
 
 chars = []
 chars = [0 for i in range(128)] 
@@ -48,9 +50,9 @@ def printStatistics(maxTapsfun):
 
 def thread_udp(inputNetwork):
     if inputNetwork == '1':
-        network = '172.1.0/24'
+        network = '172.1.0.0/24'
     elif inputNetwork == '2':
-        network = '172.99.0/24'
+        network = '172.99.0.0/24'
     
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -58,6 +60,7 @@ def thread_udp(inputNetwork):
     message = struct.pack('I B H', 0xfeedbeef, 0x2, TCP_PORT)
     i=0
     print (bcolors.WARNING + 'Server started listening on ip address 172.1.0.91' + bcolors.ENDC)
+    ip = str(ipaddress.ip_network(network,False).broadcast_address)
     while 1:
         server.sendto(message, ('<broadcast>', 13117)) ################## change to variable 'network
         i+=1
