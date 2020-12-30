@@ -87,6 +87,7 @@ def thread_tcp():
         try:
             connectionSocket, addr = serverSocket.accept()
             teamName = connectionSocket.recv(2048)
+            print(teamName.decode())
             teams.append(teamName.decode())
             connections.append(connectionSocket)
 
