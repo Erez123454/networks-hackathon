@@ -89,7 +89,7 @@ def thread_udp(inputNetwork):
 
         while 1:
             #broadcasting for all the clients
-            server.sendto(message, (ip, 13117))    
+            server.sendto(message, (ip, 13119))    
             i+=1
             #after 10 seconds stop
             if(i==10):  
@@ -110,12 +110,11 @@ def thread_tcp():
             connectionSocket, addr = serverSocket.accept() 
             #save the team name
             teamName = connectionSocket.recv(2048)  
-            print(teamName.decode())
             teams.append(teamName.decode())
             connections.append(connectionSocket)    
         except :
             #after 10 seconds of getting clients into the game, start the game
-            startGame(teams,connections)    
+            startGame(teams,connections)  
             #when the game is over, exit the tcp thread loop
             break
     print (bcolors.WARNING + '\nGame over, sending out offer requests...' + bcolors.ENDC)  
@@ -150,7 +149,7 @@ def startGame(teams, connections):
                 thread= threading.Thread(target=listenToClient,args=(i,connections[i],welcomeMessage))
                 threads.append(thread) 
                 thread.start()
-                
+            
             for thread in threads:
                 #main thread waits for all clients
                 thread.join()       
@@ -196,18 +195,17 @@ def listenToClient(groupNumber,connection,welcomeMessage):
                 charTyped = connection.recv(2048)
                 try:
                     charTypedDecode = charTyped.decode()
-
                     #adding 1 for the statistics chars counter
-                    chars[ord(charTypedDecode)]+=1
+                    mostCharsTaps[ord(charTypedDecode)]+=1
                 except:
                     #if client send a word (or something that not a char) instead of char
                     #adding 1 for the client's group
-                    if groupNumber == 1:
+                    if groupNumber % 2 == 0:
                         next(counterG1)
                     else:
                         next(counterG2)
                 #adding 1 for the client's group
-                if groupNumber == 1:
+                if  groupNumber % 2 == 0:
                     next(counterG1)
                 else:
                     next(counterG2)
