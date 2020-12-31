@@ -12,7 +12,7 @@ import ipaddress
 TCP_PORT = 0 
 network_eth1 = '172.1.0.0/16'
 network_eth2 = '172.99.0.0/16'
-clientUdpPort = 13119
+clientUdpPort = 13117
 
 #all the colors in the code
 class bcolors:

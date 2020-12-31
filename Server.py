@@ -13,6 +13,7 @@ mostCharsTaps = []
 mostCharsTaps = [0 for i in range(128)] 
 random.seed(1)
 TCP_PORT = 0
+UDP_PORT = 13117
 network_eth1 = '172.1.0.0/16'
 network_eth2 = '172.99.0.0/16'
 
@@ -89,7 +90,7 @@ def thread_udp(inputNetwork):
 
         while 1:
             #broadcasting for all the clients
-            server.sendto(message, (ip, 13119))    
+            server.sendto(message, (ip, UDP_PORT))    
             i+=1
             #after 10 seconds stop
             if(i==10):  
