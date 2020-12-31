@@ -218,6 +218,8 @@ def listenToClient(groupNumber,connection,welcomeMessage):
         pass
     connection.close()
 
+
+####main and start code###
 #open the server tcp socket
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind(('', 0))
@@ -228,9 +230,10 @@ inputCorrect = False
 inputNetwork = ''
 while inputCorrect == False:
     #get the relevant state (network)
+    #print the selection network API
     print(bcolors.UNDERLINE + bcolors.HEADER + bcolors.BOLD + 'please choose your virtual network:' + bcolors.ENDC)
-    print(bcolors.HEADER + 'press 1 for dev network (eth1 - 172.1.0.0/24)' + bcolors.ENDC)
-    print(bcolors.HEADER + 'press 2 for dev network (eth2 - 172.99.0.0/24)' + bcolors.ENDC)
+    print(bcolors.HEADER + 'press 1 for dev network (eth1 - ' + network_eth1 + ')' + bcolors.ENDC)
+    print(bcolors.HEADER + 'press 2 for dev network (eth2 - ' + network_eth2 + ')' + bcolors.ENDC)
     inputNetwork = input()
     if (inputNetwork == '1') | (inputNetwork == '2'):
         inputCorrect = True
