@@ -74,15 +74,19 @@ def thread_udp(inputNetwork):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server.settimeout(0.2)
-        message = struct.pack('I B H', 0xfeedbeef, 0x2, TCP_PORT)
-        i=0    
+        message = struct.pack('I B H', 0xfeedbeef, 0x2, TCP_PORT)    
         #check if in regular state or test state
         if inputNetwork == '1':
             print (bcolors.WARNING + 'Server started listening on ip address 172.1.0.91' + bcolors.ENDC)
         elif inputNetwork == '2':
             print (bcolors.WARNING + 'Server started listening on ip address 172.99.0.91' + bcolors.ENDC)
-            #get the relevant ip for the current state
+        
+        #get the relevant ip for the current state
         ip = str(ipaddress.ip_network(network,False).broadcast_address) 
+
+        # i is index for 10 seconds
+        i=0
+
         while 1:
             #broadcasting for all the clients
             server.sendto(message, (ip, 13117))    
@@ -120,13 +124,15 @@ def startGame(teams, connections):
         try:
             group1 = []
             group2 = []
+
             #divide the clients to 2 groups
             for i in range(len(teams)) :    
                 if i % 2 == 0:
                     group1.append(teams[i])
                 else:
                     group2.append(teams[i])
-                    #prepare the welcome messege
+
+            #prepare the welcome messege
             welcomeMessage='Welcome to Keyboard Spamming Battle Royale.\nGroup 1: \n==\n'
             for g in group1:
                 welcomeMessage+=str(g) + '\n'
@@ -139,8 +145,8 @@ def startGame(teams, connections):
         try:
             threads=[]
             for i in range(len(connections)):
-                thread= threading.Thread(target=listenToClient,args=(i,connections[i],welcomeMessage))
                 #each client open new thread
+                thread= threading.Thread(target=listenToClient,args=(i,connections[i],welcomeMessage))
                 threads.append(thread) 
                 thread.start()
                 
@@ -150,14 +156,15 @@ def startGame(teams, connections):
         except:
             pass
 
-        #prepare game over messege
         val1=max(next(copy.copy(counterG1)),0)
         val2=max(next(copy.copy(counterG2)),0)
-
+        
+        #prepare game over messege
         print (bcolors.WARNING + bcolors.BOLD + '\nGame over!' + bcolors.ENDC)
         print (bcolors.FAIL + 'Group 1 typed in ',val1, ' characters. Group 2 typed in ',val2, 'characters.' + bcolors.ENDC)
-        #get the winner
-        if (val1 >val2):
+        
+        #get the winner and print a message of him
+        if (val1 > val2):
             print (bcolors.OKGREEN + bcolors.BOLD + bcolors.UNDERLINE + 'Group 1 wins!' + bcolors.ENDC)
             print()
             print (bcolors.OKGREEN + 'Congratulations to the winners:' + bcolors.ENDC)
@@ -174,11 +181,13 @@ def startGame(teams, connections):
     except:
         pass
 
-#each thread initilized with the function that listen to the client
+#each thread initilized with this function that listen to the client
 def listenToClient(groupNumber,connection,welcomeMessage):
     try:
         connection.settimeout(10)
         connection.send(welcomeMessage.encode())
+
+        # 10 sec loop of getting chars from the clinet
         curr= time.time()
         while time.time() < curr+10: 
             try:
