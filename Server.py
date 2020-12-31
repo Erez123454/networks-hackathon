@@ -9,10 +9,13 @@ import ipaddress
 from scapy.all import get_if_addr
 
 
-chars = []
-chars = [0 for i in range(128)] 
+mostCharsTaps = []
+mostCharsTaps = [0 for i in range(128)] 
 random.seed(1)
 TCP_PORT = 0
+network_eth1 = '172.1.0.0/16'
+network_eth2 = '172.99.0.0/16'
+
 
 #all the colors in the code
 class bcolors:  
@@ -29,15 +32,16 @@ class bcolors:
  #statistics
 def getMostCommonChar():   
     try:
-        maxChar = max(chars)
+        maxChar = max(mostCharsTaps)
         result = []
-        for i in range(len(chars)):
-            if chars[i] == maxChar:
+        for i in range(len(mostCharsTaps)):
+            if mostCharsTaps[i] == maxChar:
                 #for each result check if max
                 result.append(chr(i))   
         return [result,maxChar]
     except:
-        return [0,'d']
+        return [0,' ']
+
 
 def printStatistics(maxTapsfun):
     try:
@@ -62,9 +66,11 @@ def printStatistics(maxTapsfun):
 def thread_udp(inputNetwork):
     try:
         if inputNetwork == '1':
-            network = '172.1.0.0/16'
+            network = network_eth1
         elif inputNetwork == '2':
-            network = '172.99.0.0/16'
+            network = network_eth2
+        
+        #define and open server udp broadcast socket
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server.settimeout(0.2)
