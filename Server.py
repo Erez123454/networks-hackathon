@@ -114,8 +114,9 @@ def thread_tcp():
             teams.append(teamName.decode())
             connections.append(connectionSocket)    
         except :
-            #after 10 seconds start the game
+            #after 10 seconds of getting clients into the game, start the game
             startGame(teams,connections)    
+            #when the game is over, exit the tcp thread loop
             break
     print (bcolors.WARNING + '\nGame over, sending out offer requests...' + bcolors.ENDC)  
 
@@ -191,26 +192,33 @@ def listenToClient(groupNumber,connection,welcomeMessage):
         curr= time.time()
         while time.time() < curr+10: 
             try:
+                #waiting for the next char from the client
                 charTyped = connection.recv(2048)
                 try:
                     charTypedDecode = charTyped.decode()
+
+                    #adding 1 for the statistics chars counter
                     chars[ord(charTypedDecode)]+=1
                 except:
+                    #if client send a word (or something that not a char) instead of char
+                    #adding 1 for the client's group
                     if groupNumber == 1:
                         next(counterG1)
                     else:
                         next(counterG2)
+                #adding 1 for the client's group
                 if groupNumber == 1:
                     next(counterG1)
                 else:
                     next(counterG2)
             except :
+                #when the connection get interrupt by the timeout(10), get out of the loop
                 break
     except:
         pass
     connection.close()
 
-#setting for the server socket
+#open the server tcp socket
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind(('', 0))
 serverSocket.listen(1)
