@@ -8,8 +8,11 @@ import sys, tty, termios, fcntl
 import getch
 import ipaddress
 
-#global tcp port variable
+#global variables
 TCP_PORT = 0 
+network_eth1 = '172.1.0.0/16'
+network_eth2 = '172.99.0.0/16'
+clientUdpPort = 13117
 
 #all the colors in the code
 class bcolors:
@@ -23,32 +26,31 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     
-#wait to offer mode
+#print the selection network API
 inputCorrect = False
 while inputCorrect == False:
     print(bcolors.UNDERLINE + bcolors.HEADER + bcolors.BOLD + 'please choose your virtual network:' + bcolors.ENDC)
-    print(bcolors.HEADER + 'press 1 for dev network (eth1 - 172.1.0.0/24)' + bcolors.ENDC)
-    print(bcolors.HEADER + 'press 2 for dev network (eth2 - 172.99.0.0/24)' + bcolors.ENDC)
+    print(bcolors.HEADER + 'press 1 for dev network (eth1 - ' + network_eth1 + ')' + bcolors.ENDC)
+    print(bcolors.HEADER + 'press 2 for dev network (eth2 - ' + network_eth2 + ')' + bcolors.ENDC)
     inputNetwork = input()
     if (inputNetwork == '1') | (inputNetwork == '2'):
         inputCorrect = True
     else:
         print(bcolors.FAIL + 'ERROR : you can only press 1 or 2, please try again' + bcolors.ENDC) 
 
-#choose the right network      
+#get the relevant state (network)      
 if inputNetwork == '1':
     network = get_if_addr('eth1')+'/16'
 elif inputNetwork == '2':
     network = get_if_addr('eth2')+'/16'       
 
 
-#open the client UDP socket
+#open the client UDP socket and start listening for game offers
 client = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) 
 client.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 client.setsockopt(SOL_SOCKET, SO_REUSEADDR , 1)
 ip = str(ipaddress.ip_network(network,False).broadcast_address)
-print(ip)
-client.bind((ip, 13117))
+client.bind((ip, clientUdpPort))
 print(bcolors.WARNING +"Client started, listening for offer requests..." + bcolors.ENDC)
 
 #main loop
@@ -73,7 +75,7 @@ while 1:
         pass
 
     #Game mode!!!
-    #getting chars from client loop
+    #100 sec loop of getting chars from client keyboard
     startTime = time.time()
     while 1: 
         try:

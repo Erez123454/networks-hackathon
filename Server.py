@@ -8,7 +8,7 @@ import copy
 import ipaddress
 from scapy.all import get_if_addr
 
-
+#global variables
 mostCharsTaps = []
 mostCharsTaps = [0 for i in range(128)] 
 random.seed(1)
